@@ -5,6 +5,6 @@ import { prisma } from "./prisma";
 export const getNYoungestUsers = (howManyUsersToGrab: number) => {
   return prisma.user.findMany({
     take: howManyUsersToGrab,
-    orderBy: [{ age: "asc" }],
+    orderBy: { age: "asc" },
   });
 };

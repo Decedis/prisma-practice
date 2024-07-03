@@ -4,6 +4,6 @@ import { prisma } from "./prisma";
 // get an array of all users
 export const getAllUsers = () => {
   return prisma.user.findMany({
-    orderBy: [{ username: "asc" }],
+    orderBy: { username: "asc" },
   });
 };

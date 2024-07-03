@@ -5,40 +5,32 @@ import { prisma } from "./prisma";
 
 // find the critic with the lowest average score
 export const findTheGrumpiestCriticId = async () => {
-  return prisma.starRating
-    .groupBy({
-      by: ["userId"],
-      _avg: {
-        score: true,
-      },
-    })
-    .then((val) => {
-      return minBy(val, (item) => item._avg.score ?? Infinity);
-    })
-    .then((result) => {
-      if (result) {
-        return result.userId;
-      }
-    })
-    .catch((err) => console.error(err));
+  const starWithAvgScore = await prisma.starRating.groupBy({
+    by: ["userId"],
+    _avg: {
+      score: true,
+    },
+    orderBy: {
+      _avg: { score: "asc" },
+    },
+    take: 1,
+  });
+  if (!starWithAvgScore) return;
+  return starWithAvgScore[0].userId;
 };
 
 // find the critic with the highest average score
 export const findTheNicestCriticId = async () => {
-  return prisma.starRating
-    .groupBy({
-      by: ["userId"],
-      _avg: {
-        score: true,
-      },
-    })
-    .then((val) => {
-      return maxBy(val, (item) => item._avg.score ?? Number.NEGATIVE_INFINITY);
-    })
-    .then((result) => {
-      if (result) {
-        return result.userId;
-      }
-    })
-    .catch((err) => console.error(err));
+  const starWithAvgScore = await prisma.starRating.groupBy({
+    by: ["userId"],
+    _avg: {
+      score: true,
+    },
+    orderBy: {
+      _avg: { score: "desc" },
+    },
+    take: 1,
+  });
+  if (!starWithAvgScore) return;
+  return starWithAvgScore[0].userId;
 };

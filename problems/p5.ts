@@ -15,26 +15,21 @@ type StarRatingWithMovie = StarRating & {
 // hint:find all stars with the movies "included" on, then good ol' javascript should finish the job
 // This one should require more javascript work than the previous ones
 export const getAllMoviesWithAverageScoreOverN = async (n: number) => {
-  const starRatings: StarRatingWithMovie[] = await prisma.starRating.findMany({
-    include: { movie: true },
-    orderBy: { id: "asc" },
-  });
-  //get movie averages
-  const averages: Record<number, MovieWithAverageScore> = starRatings.reduce(
-    (acc, rating) => {
-      if (!acc[rating.movieId]) {
-        acc[rating.movieId] = { sum: 0, count: 0, movie: rating.movie };
-      }
-      acc[rating.movieId].sum += rating.score;
-      acc[rating.movieId].count += 1;
-      return acc;
+  const starRatingsWithMovies = await prisma.starRating.groupBy({
+    by: ["movieId"],
+    having: {
+      score: {
+        _avg: {
+          gt: n,
+        },
+      },
     },
-    {} as Record<number, MovieWithAverageScore>
-  );
-  const averagesArr = Object.values(averages);
-  console.log(averagesArr);
-
-  return averagesArr
-    .filter(({ sum, count }) => sum / count > n) //destructure necessary values
-    .map(({ movie }) => movie);
+  });
+  return prisma.movie.findMany({
+    where: {
+      id: {
+        in: starRatingsWithMovies.map((rating) => rating.movieId),
+      },
+    },
+  });
 };
